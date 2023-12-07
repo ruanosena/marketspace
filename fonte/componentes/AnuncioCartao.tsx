@@ -11,9 +11,9 @@ type Props = IPressableProps & {
 
 export function AnuncioCartao({ dados = 1, ...rest }: Props) {
 	return (
-		<Pressable {...rest}>
+		<Pressable flex={1} {...rest}>
 			<VStack>
-				<Box height={100} width={150} borderRadius="md" overflow="hidden">
+				<Box height={100} width="auto" borderRadius="md" overflow="hidden">
 					<Image
 						source={dados == 1 ? item1 : item2}
 						alt="Imagem do item no catálogo"
@@ -46,11 +46,11 @@ export function AnuncioCartao({ dados = 1, ...rest }: Props) {
 						</Badge>
 					</HStack>
 				</Box>
-				<Text color="gray.700" fontSize="md">
+				<Text color="gray.700" fontSize="sm">
 					{dados == 1 ? "Tênis vermelho" : "Bicicleta"}
 				</Text>
-				<Text color="gray.900" fontWeight="bold" fontSize="lg">
-					<Text color="gray.900" fontWeight="bold" fontSize="md">
+				<Text color="gray.900" fontWeight="bold" fontSize="md">
+					<Text color="gray.900" fontWeight="bold" fontSize="sm">
 						R$
 					</Text>{" "}
 					{dados == 1 ? "59,90" : "120,00"}

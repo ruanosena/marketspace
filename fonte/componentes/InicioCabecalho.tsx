@@ -18,14 +18,14 @@ export function InicioCabecalho() {
 				alt="Imagem foto do perfil"
 			/>
 			<VStack flex={1}>
-				<Text color="gray.900" fontSize="md">
+				<Text color="gray.900" fontSize="sm">
 					Boas vindas,
 				</Text>
-				<Heading fontSize="md">Maria!</Heading>
+				<Heading fontSize="sm">Maria!</Heading>
 			</VStack>
 			<Botao
 				rounded="lg"
-				_text={{ color: "gray.50" }}
+				_text={{ color: "gray.50", fontSize: "xs" }}
 				leftIcon={<Icon as={Plus} color="gray.100" />}
 			>
 				Criar anúncio

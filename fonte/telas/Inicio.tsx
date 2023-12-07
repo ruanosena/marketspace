@@ -10,7 +10,7 @@ export function Inicio() {
 	const [anuncios, defAnuncios] = useState([1, 2, 1, 1, 2, 2, 2, 1]);
 
 	return (
-		<Box>
+		<Box flex={1}>
 			<InicioCabecalho />
 			<CTAAnuncios />
 			<CatalogoCabecalho />
@@ -20,11 +20,14 @@ export function Inicio() {
 				data={anuncios}
 				keyExtractor={(item, indice) => "anuncio-" + item + indice}
 				renderItem={({ item }) => <AnuncioCartao dados={item} />}
+				horizontal={false}
+				numColumns={2}
+				columnWrapperStyle={{
+					columnGap: 24,
+				}}
+        flex={1}
 				_contentContainerStyle={{
-					pb: 80,
-					flexDirection: "row",
-					flexWrap: "wrap",
-					justifyContent: "space-between",
+					pb: 16,
 				}}
 			/>
 		</Box>

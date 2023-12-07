@@ -1,6 +1,7 @@
 import { Box, HStack, Icon, IconButton, Text, VStack } from "native-base";
 import { Entrada } from "./Entrada";
 import { MagnifyingGlass, Sliders } from "phosphor-react-native";
+import { FiltrosModal } from "./FiltrosModal";
 
 export function CatalogoCabecalho() {
 	return (
@@ -15,7 +16,7 @@ export function CatalogoCabecalho() {
 						divider={<Box height={5} borderWidth={1} borderRightColor="gray.500" />}
 					>
 						<IconButton icon={<Icon as={MagnifyingGlass} color="gray.700" />} />
-						<IconButton icon={<Icon as={Sliders} color="gray.700" />} />
+						<FiltrosModal />
 					</HStack>
 				}
 			/>

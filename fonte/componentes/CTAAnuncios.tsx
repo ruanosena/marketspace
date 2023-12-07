@@ -9,7 +9,7 @@ export function CTAAnuncios({ ...rest }: Props) {
 	return (
 		<TouchableHighlight {...rest}>
 			<Box my={8} px={6}>
-				<Text color="gray.600">Seus produtos anunciados para venda</Text>
+				<Text color="gray.600" numberOfLines={1}>Seus produtos anunciados para venda</Text>
 				<HStack mt={3} py={3} px={4} alignItems="center" bgColor="lightBlue.300" borderRadius="md">
 					<Icon as={Tag} color="blue.500" mr={4} />
 
@@ -17,12 +17,12 @@ export function CTAAnuncios({ ...rest }: Props) {
 						<Heading fontSize="lg" color="gray.700">
 							4
 						</Heading>
-						<Text color="gray.700">anúncios ativos</Text>
+						<Text color="gray.700" fontSize="xs" numberOfLines={1}>anúncios ativos</Text>
 					</VStack>
 
 					<Botao
 						variant="link"
-						_text={{ color: "blue.500" }}
+						_text={{ color: "blue.500", fontSize: "xs" }}
 						rightIcon={<Icon as={ArrowRight} color="blue.500" />}
 						bgColor="transparent"
 					>
