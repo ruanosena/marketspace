@@ -13,21 +13,32 @@ import {
 	VStack,
 } from "native-base";
 import Carrossel from "react-native-reanimated-carousel";
-import { Bank, Barcode, Power, QrCode, TrashSimple, WhatsappLogo } from "phosphor-react-native";
+import { Bank, Barcode, PencilLine, Power, QrCode, TrashSimple } from "phosphor-react-native";
 import { Botao } from "@comp/Botao";
 import { TelaCabecalho } from "@comp/TelaCabecalho";
+import { useNavigation } from "@react-navigation/native";
 
 import meuAnuncio1 from "@asset/meuanuncio1.png";
 import meuAnuncio2 from "@asset/meuanuncio2.png";
 import fotoPerfil from "@asset/fotoPerfil.png";
+import { AnunciosNavegadorRotasProps } from "@rota/anuncios.rotas";
 
-export function Anuncio() {
+export function Detalhes() {
+	const navegacao = useNavigation<AnunciosNavegadorRotasProps>();
 	const tamanho = Dimensions.get("window").width;
+
+	function lidarEditar() {
+		navegacao.navigate("editar");
+	}
 
 	return (
 		<>
-			<TelaCabecalho botaoVoltar />
-			<ScrollView bgColor="white">
+			<TelaCabecalho
+				botaoDireita={
+					<IconButton onPress={lidarEditar} icon={<Icon as={PencilLine} color="gray.900" />} />
+				}
+			/>
+			<ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
 				<Carrossel
 					loop
 					width={tamanho}
@@ -56,7 +67,7 @@ export function Anuncio() {
 						</Box>
 					)}
 				/>
-				<VStack px={6} space={6} py={6} bgColor="gray.100" borderBottomRadius="2xl">
+				<VStack px={6} space={6} mt={5}>
 					<HStack alignItems="center" space={2}>
 						<Image
 							w={8}
@@ -108,7 +119,7 @@ export function Anuncio() {
 							<Heading fontSize="sm" color="gray.700">
 								Aceita troca?
 							</Heading>
-							<Text color="gray.700">Sim</Text>
+							<Text color="gray.700">Não</Text>
 						</HStack>
 						<VStack space={2}>
 							<Heading fontSize="sm" color="gray.700">
@@ -134,23 +145,19 @@ export function Anuncio() {
 							</Box>
 						</VStack>
 					</VStack>
+
+					<Button.Group direction="column" space={2}>
+						<Botao leftIcon={<Icon as={Power} />}>Desativar Anúncio</Botao>
+						<Botao
+							bgColor="gray.300"
+							leftIcon={<Icon as={TrashSimple} color="gray.700" />}
+							_text={{ color: "gray.700" }}
+						>
+							Excluir anúncio
+						</Botao>
+					</Button.Group>
 				</VStack>
 			</ScrollView>
-			<HStack py={5} px={6} justifyContent="space-between" alignItems="flex-end" bgColor="white">
-				<Text fontSize="xl" color="blue.500" fontFamily="heading">
-					<Text fontSize="sm" color="blue.500">
-						R$
-					</Text>{" "}
-					45,00
-				</Text>
-				<Botao
-					bgColor="blue.300"
-					leftIcon={<Icon as={WhatsappLogo} color="gray.50" />}
-					_text={{ color: "gray.50" }}
-				>
-					Entrar em contato
-				</Botao>
-			</HStack>
 		</>
 	);
 }

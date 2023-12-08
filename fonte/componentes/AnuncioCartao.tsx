@@ -1,23 +1,26 @@
-import { Badge, Box, HStack, IPressableProps, Image, Pressable, Text, VStack } from "native-base";
+import { TouchableOpacity, TouchableOpacityProps } from "react-native";
+import { Badge, Box, HStack, Image, Text, VStack } from "native-base";
 
 import item1 from "@asset/item1.png";
 import item2 from "@asset/item2.png";
 import pessoa1 from "@asset/pessoa1.png";
 import pessoa2 from "@asset/pessoa2.png";
 
-type Props = IPressableProps & {
+type Props = TouchableOpacityProps & {
 	dados: number;
 };
 
 export function AnuncioCartao({ dados = 1, ...rest }: Props) {
 	return (
-		<Pressable flex={1} {...rest}>
+		<TouchableOpacity {...rest}>
 			<VStack>
 				<Box height={100} width="auto" borderRadius="md" overflow="hidden">
 					<Image
 						source={dados == 1 ? item1 : item2}
+						height={100}
+						width={153}
 						alt="Imagem do item no catálogo"
-						resizeMode="contain"
+						resizeMode="cover"
 						position="absolute"
 					/>
 					<HStack justifyContent="space-between">
@@ -45,6 +48,22 @@ export function AnuncioCartao({ dados = 1, ...rest }: Props) {
 							{dados == 1 ? "Usado" : "Novo"}
 						</Badge>
 					</HStack>
+					{dados == 1 && (
+						<Box w="full" h="full" bgColor="gray.900" position="absolute" opacity={0.45} />
+					)}
+					{dados == 1 && (
+						<Text
+							textTransform="uppercase"
+							color="white"
+							mt="auto"
+							mb={2}
+							ml={2}
+							fontWeight="bold"
+							fontSize="xs"
+						>
+							Anúncio desativado
+						</Text>
+					)}
 				</Box>
 				<Text color="gray.700" fontSize="sm">
 					{dados == 1 ? "Tênis vermelho" : "Bicicleta"}
@@ -56,6 +75,6 @@ export function AnuncioCartao({ dados = 1, ...rest }: Props) {
 					{dados == 1 ? "59,90" : "120,00"}
 				</Text>
 			</VStack>
-		</Pressable>
+		</TouchableOpacity>
 	);
 }

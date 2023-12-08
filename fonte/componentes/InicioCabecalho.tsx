@@ -3,8 +3,16 @@ import { Botao } from "./Botao";
 import { Plus } from "phosphor-react-native";
 
 import fotoPerfil from "@asset/fotoPerfil.png";
+import { useNavigation } from "@react-navigation/native";
+import { CatalogoNavegadorRotasProps } from "@rota/catalogo.rotas";
 
 export function InicioCabecalho() {
+	const navegacao = useNavigation<CatalogoNavegadorRotasProps>();
+
+	function lidarNovoAnuncio() {
+		navegacao.navigate("criar");
+	}
+
 	return (
 		<HStack alignItems="center" px={6} pt={6}>
 			<Image
@@ -27,6 +35,7 @@ export function InicioCabecalho() {
 				rounded="lg"
 				_text={{ color: "gray.50", fontSize: "xs" }}
 				leftIcon={<Icon as={Plus} color="gray.100" />}
+				onPress={lidarNovoAnuncio}
 			>
 				Criar anúncio
 			</Botao>

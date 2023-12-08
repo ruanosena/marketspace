@@ -13,20 +13,33 @@ import {
 	VStack,
 } from "native-base";
 import Carrossel from "react-native-reanimated-carousel";
-import { Bank, Barcode, Power, QrCode, TrashSimple, WhatsappLogo } from "phosphor-react-native";
+import { useNavigation } from "@react-navigation/native";
+import { ArrowLeft, Bank, Barcode, QrCode, Tag } from "phosphor-react-native";
+import { CatalogoNavegadorRotasProps } from "@rota/catalogo.rotas";
 import { Botao } from "@comp/Botao";
-import { TelaCabecalho } from "@comp/TelaCabecalho";
 
 import meuAnuncio1 from "@asset/meuanuncio1.png";
 import meuAnuncio2 from "@asset/meuanuncio2.png";
 import fotoPerfil from "@asset/fotoPerfil.png";
 
-export function Anuncio() {
+export function Visualizar() {
 	const tamanho = Dimensions.get("window").width;
+	const navegacao = useNavigation<CatalogoNavegadorRotasProps>();
+
+	function lidarVoltar() {
+		navegacao.goBack();
+	}
 
 	return (
 		<>
-			<TelaCabecalho botaoVoltar />
+			<Box bgColor="blue.300" px={6} py={4}>
+				<Heading color="gray.50" fontSize="md" textAlign="center">
+					Pré visualização do anúncio
+				</Heading>
+				<Text color="gray.50" textAlign="center">
+					É assim que seu produto vai aparecer!
+				</Text>
+			</Box>
 			<ScrollView bgColor="white">
 				<Carrossel
 					loop
@@ -136,19 +149,30 @@ export function Anuncio() {
 					</VStack>
 				</VStack>
 			</ScrollView>
-			<HStack py={5} px={6} justifyContent="space-between" alignItems="flex-end" bgColor="white">
-				<Text fontSize="xl" color="blue.500" fontFamily="heading">
-					<Text fontSize="sm" color="blue.500">
-						R$
-					</Text>{" "}
-					45,00
-				</Text>
+			<HStack
+				py={5}
+				px={6}
+				space={3}
+				justifyContent="space-between"
+				alignItems="flex-end"
+				bgColor="white"
+			>
 				<Botao
+					flex={1}
+					bgColor="gray.300"
+					_text={{ color: "gray.700" }}
+					leftIcon={<Icon as={ArrowLeft} color="gray.700" />}
+					onPress={lidarVoltar}
+				>
+					Voltar e editar
+				</Botao>
+				<Botao
+					flex={1}
 					bgColor="blue.300"
-					leftIcon={<Icon as={WhatsappLogo} color="gray.50" />}
+					leftIcon={<Icon as={Tag} color="gray.50" />}
 					_text={{ color: "gray.50" }}
 				>
-					Entrar em contato
+					Publicar
 				</Botao>
 			</HStack>
 		</>

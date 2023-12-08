@@ -1,12 +1,13 @@
 import { createBottomTabNavigator, BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Icon, useTheme } from "native-base";
 import { House, Tag } from "phosphor-react-native";
-import { Inicio } from "@tela/Inicio";
-import { Anuncio } from "@tela/Anuncio";
+import { CatalogoRotas } from "./catalogo.rotas";
+import { MeusAnuncios } from "@tela/MeusAnuncios";
+import { AnunciosRotas } from "./anuncios.rotas";
 
 type AppRotas = {
-	inicio: undefined;
-	anuncio: undefined;
+	catalogo: undefined;
+	anuncios: undefined;
 };
 
 export type AppNavegadorRotasProps = BottomTabNavigationProp<AppRotas>;
@@ -14,7 +15,7 @@ export type AppNavegadorRotasProps = BottomTabNavigationProp<AppRotas>;
 const { Screen: Tela, Navigator: Navegador } = createBottomTabNavigator<AppRotas>();
 
 export function AppRotas() {
-	const { colors: cores, sizes: tamanhos } = useTheme();
+	const { colors: cores } = useTheme();
 
 	return (
 		<Navegador
@@ -26,15 +27,15 @@ export function AppRotas() {
 			}}
 		>
 			<Tela
-				name="inicio"
-				component={Inicio}
-				options={{ tabBarIcon: ({ color }) => <Icon as={House} color={color} /> }}
+				name="catalogo"
+				component={CatalogoRotas}
+				options={{ tabBarIcon: ({ color, size }) => <Icon as={House} color={color} size={size} /> }}
 			/>
 
 			<Tela
-				name="anuncio"
-				component={Anuncio}
-				options={{ tabBarIcon: ({ color }) => <Icon as={Tag} color={color} /> }}
+				name="anuncios"
+				component={AnunciosRotas}
+				options={{ tabBarIcon: ({ color, size }) => <Icon as={Tag} color={color} size={size} /> }}
 			/>
 		</Navegador>
 	);
