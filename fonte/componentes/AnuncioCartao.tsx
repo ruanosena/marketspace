@@ -13,12 +13,12 @@ type Props = TouchableOpacityProps & {
 export function AnuncioCartao({ dados = 1, ...rest }: Props) {
 	return (
 		<TouchableOpacity {...rest}>
-			<VStack>
+			<VStack maxW={160}>
 				<Box height={100} width="auto" borderRadius="md" overflow="hidden">
 					<Image
 						source={dados == 1 ? item1 : item2}
 						height={100}
-						width={153}
+						width="full"
 						alt="Imagem do item no catálogo"
 						resizeMode="cover"
 						position="absolute"

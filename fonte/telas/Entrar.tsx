@@ -1,16 +1,44 @@
+import { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { AutNavegadorRotasProps } from "@rota/aut.rotas";
-import { Box, Button, Center, Heading, ScrollView, Text, VStack } from "native-base";
-
-import LogotipoSvg from "@asset/Logotipo.svg";
+import {
+	Box,
+	Button,
+	Center,
+	Heading,
+	Icon,
+	Pressable,
+	ScrollView,
+	Text,
+	VStack,
+} from "native-base";
+import { Controller, useForm } from "react-hook-form";
+import { Eye, EyeSlash } from "phosphor-react-native";
 import { Entrada } from "@comp/Entrada";
 import { Botao } from "@comp/Botao";
 
+import LogotipoSvg from "@asset/Logotipo.svg";
+
+type FormDadosProps = {
+	email: string;
+	senha: string;
+};
+
 export function Entrar() {
+	const [mostrarSenha, defMostrarSenha] = useState(false);
 	const navegacao = useNavigation<AutNavegadorRotasProps>();
+	const {
+		control: controle,
+		handleSubmit: lidarEnviar,
+		formState: { errors: erros },
+	} = useForm<FormDadosProps>();
 
 	function lidarNovaConta() {
 		navegacao.navigate("cadastrar");
+	}
+
+	function lidarEntrar({ email, senha }: FormDadosProps) {
+		console.log(email, senha);
 	}
 
 	return (
@@ -30,9 +58,43 @@ export function Entrar() {
 						<Heading fontSize="sm" color="gray.700">
 							Acesse sua conta
 						</Heading>
-						<Entrada placeholder="E-mail" />
-						<Entrada placeholder="Senha" secureTextEntry />
-						<Botao w="full" bgColor="blue.300" mt={4}>
+						<Controller
+							control={controle}
+							name="email"
+							rules={{ required: "Informe o e-mail" }}
+							render={({ field: { onChange, value } }) => (
+								<Entrada
+									placeholder="E-mail"
+									onChangeText={onChange}
+									keyboardType="email-address"
+									autoCapitalize="none"
+									value={value}
+									erro={erros.email?.message}
+								/>
+							)}
+						/>
+						<Controller
+							control={controle}
+							name="senha"
+							rules={{ required: "Informe a senha" }}
+							render={({ field: { onChange, value } }) => (
+								<Entrada
+									onChangeText={onChange}
+									value={value}
+									erro={erros.senha?.message}
+									onSubmitEditing={lidarEnviar(lidarEntrar)}
+									returnKeyType="send"
+									placeholder="Senha"
+									type={mostrarSenha ? "text" : "password"}
+									InputRightElement={
+										<Pressable onPress={() => defMostrarSenha(!mostrarSenha)}>
+											<Icon as={mostrarSenha ? Eye : EyeSlash} mr={2} />
+										</Pressable>
+									}
+								/>
+							)}
+						/>
+						<Botao w="full" bgColor="blue.300" mt={4} onPress={lidarEnviar(lidarEntrar)}>
 							Entrar
 						</Botao>
 					</VStack>
