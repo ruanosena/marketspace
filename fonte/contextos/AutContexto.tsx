@@ -2,6 +2,7 @@ import { ReactNode, createContext, useEffect, useState } from "react";
 import { UsuarioDTO } from "@dto/usuarioDTO";
 import { Api } from "@servico/api";
 import { armObterUsuario, armRemoverUsuario, armSalvarUsuario } from "@arm/armUsuario";
+import { armObterToken, armRemoverToken, armSalvarToken } from "@arm/armTokenJWT";
 
 export type AutContextoDadosProps = {
 	usuario: UsuarioDTO;
@@ -20,12 +21,29 @@ export function AutContextoProvider({ children }: AutContextoProviderProps) {
 	const [estaCarregando, defEstaCarregando] = useState(true);
 	const [usuario, defUsuario] = useState<UsuarioDTO>({} as UsuarioDTO);
 
+	async function atualizarUsuarioEToken(usuarioDados: UsuarioDTO, token: string) {
+		Api.defaults.headers.common.Authorization = `Bearer ${token}`;
+		defUsuario(usuarioDados);
+	}
+
+	async function salvarUsuarioEToken(usuarioDados: UsuarioDTO, token: string) {
+		try {
+			defEstaCarregando(true);
+			await armSalvarUsuario(usuarioDados);
+			await armSalvarToken(token);
+		} catch (erro) {
+			throw erro;
+		} finally {
+			defEstaCarregando(false);
+		}
+	}
+
 	async function entrar(email: string, senha: string) {
 		try {
 			const { data } = await Api.post("/sessions", { email, password: senha });
-			if (data.user) {
-				defUsuario(data.user);
-				await armSalvarUsuario(data.user);
+			if (data.user && data.token) {
+				await salvarUsuarioEToken(data.user, data.token);
+				atualizarUsuarioEToken(data.user, data.token);
 			}
 		} catch (erro) {
 			throw erro;
@@ -38,6 +56,7 @@ export function AutContextoProvider({ children }: AutContextoProviderProps) {
 			defUsuario({} as UsuarioDTO);
 
 			await armRemoverUsuario();
+			await armRemoverToken();
 		} catch (erro) {
 			throw erro;
 		} finally {
@@ -48,9 +67,10 @@ export function AutContextoProvider({ children }: AutContextoProviderProps) {
 	async function carregar() {
 		try {
 			const usuarioSalvo = await armObterUsuario();
+			const token = await armObterToken();
 
-			if (usuarioSalvo.id) {
-				defUsuario(usuarioSalvo);
+			if (token && usuarioSalvo.id) {
+				atualizarUsuarioEToken(usuario, token);
 			}
 		} catch (erro) {
 			throw erro;
