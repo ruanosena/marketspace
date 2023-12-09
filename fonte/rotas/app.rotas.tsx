@@ -1,14 +1,16 @@
 import { createBottomTabNavigator, BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
-import { Icon, useTheme } from "native-base";
+import { Icon, IconButton, useTheme } from "native-base";
 import { House, SignOut, Tag } from "phosphor-react-native";
 import { CatalogoRotas } from "./catalogo.rotas";
 import { MeusAnuncios } from "@tela/MeusAnuncios";
 import { AnunciosRotas } from "./anuncios.rotas";
+import { Carregando } from "@comp/Carregando";
+import useAut from "@hook/useAut";
 
 type AppRotas = {
 	catalogo: undefined;
 	anuncios: undefined;
-	// sair: undefined;
+	sair: undefined;
 };
 
 export type AppNavegadorRotasProps = BottomTabNavigationProp<AppRotas>;
@@ -16,6 +18,7 @@ export type AppNavegadorRotasProps = BottomTabNavigationProp<AppRotas>;
 const { Screen: Tela, Navigator: Navegador } = createBottomTabNavigator<AppRotas>();
 
 export function AppRotas() {
+	const { sair } = useAut();
 	const { colors: cores } = useTheme();
 
 	return (
@@ -38,10 +41,15 @@ export function AppRotas() {
 				component={AnunciosRotas}
 				options={{ tabBarIcon: ({ color, size }) => <Icon as={Tag} color={color} size={size} /> }}
 			/>
-			{/* <Tela
+			<Tela
 				name="sair"
-				options={{ tabBarIcon: ({ size }) => <Icon as={SignOut} color="red.300" size={size} /> }}
-			/> */}
+				component={Carregando}
+				options={{
+					tabBarButton: () => (
+						<IconButton onPress={sair} icon={<Icon as={SignOut} color="red.300" />} />
+					),
+				}}
+			/>
 		</Navegador>
 	);
 }

@@ -20,13 +20,13 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as ImagemSelecionador from "expo-image-picker";
 import * as SistemaArquivo from "expo-file-system";
-
-import LogoSvg from "@asset/Logo.svg";
+import { Api } from "@servico/api";
+import useAut from "@hook/useAut";
+import { AppErro } from "@util/AppErro";
 import { Entrada } from "@comp/Entrada";
+import LogoSvg from "@asset/Logo.svg";
 import { Botao } from "@comp/Botao";
 import perfilExemplo from "@asset/perfilPlaceholder.png";
-import { Api } from "@servico/api";
-import { AppErro } from "@util/AppErro";
 
 type FormDadosProps = {
 	nome: string;
@@ -62,6 +62,7 @@ export function Cadastrar() {
 	const [mostrarSenha, defMostrarSenha] = useState(false);
 	const navegacao = useNavigation();
 	const torrada = useToast();
+	const { entrar } = useAut();
 
 	const {
 		control: controle,
@@ -97,7 +98,7 @@ export function Cadastrar() {
 			dadosForm.append("tel", telefone + "");
 			dadosForm.append("password", senha);
 
-			const resposta = await Api.post("/users", dadosForm, {
+			await Api.post("/users", dadosForm, {
 				headers: { "Content-Type": "multipart/form-data" },
 			});
 
@@ -106,7 +107,8 @@ export function Cadastrar() {
 				placement: "bottom",
 				bgColor: "blue.300",
 			});
-			console.log(resposta.data);
+
+			entrar(email, senha);
 		} catch (erro) {
 			let mensagem =
 				erro instanceof AppErro
