@@ -11,6 +11,7 @@ import {
 	ScrollView,
 	Text,
 	VStack,
+	useToast,
 } from "native-base";
 import { Controller, useForm } from "react-hook-form";
 import { Eye, EyeSlash } from "phosphor-react-native";
@@ -18,6 +19,8 @@ import { Entrada } from "@comp/Entrada";
 import { Botao } from "@comp/Botao";
 
 import LogotipoSvg from "@asset/Logotipo.svg";
+import { AppErro } from "@util/AppErro";
+import useAut from "@hook/useAut";
 
 type FormDadosProps = {
 	email: string;
@@ -25,6 +28,7 @@ type FormDadosProps = {
 };
 
 export function Entrar() {
+	const [estaEnviando, defEstaEnviando] = useState(false);
 	const [mostrarSenha, defMostrarSenha] = useState(false);
 	const navegacao = useNavigation<AutNavegadorRotasProps>();
 	const {
@@ -32,13 +36,28 @@ export function Entrar() {
 		handleSubmit: lidarEnviar,
 		formState: { errors: erros },
 	} = useForm<FormDadosProps>();
+	const { entrar } = useAut();
+	const torrada = useToast();
 
 	function lidarNovaConta() {
 		navegacao.navigate("cadastrar");
 	}
 
-	function lidarEntrar({ email, senha }: FormDadosProps) {
-		console.log(email, senha);
+	async function lidarEntrar({ email, senha }: FormDadosProps) {
+		try {
+			defEstaEnviando(true);
+
+			await entrar(email, senha);
+		} catch (erro) {
+			let mensagem =
+				erro instanceof AppErro
+					? erro.message
+					: "Não foi possível entrar, tente novamente mais tarde.";
+
+			torrada.show({ title: mensagem, placement: "bottom", bgColor: "red.300" });
+		} finally {
+			defEstaEnviando(false);
+		}
 	}
 
 	return (
@@ -85,6 +104,7 @@ export function Entrar() {
 									onSubmitEditing={lidarEnviar(lidarEntrar)}
 									returnKeyType="send"
 									placeholder="Senha"
+									autoCapitalize="none"
 									type={mostrarSenha ? "text" : "password"}
 									InputRightElement={
 										<Pressable onPress={() => defMostrarSenha(!mostrarSenha)}>
@@ -94,7 +114,13 @@ export function Entrar() {
 								/>
 							)}
 						/>
-						<Botao w="full" bgColor="blue.300" mt={4} onPress={lidarEnviar(lidarEntrar)}>
+						<Botao
+							w="full"
+							bgColor="blue.300"
+							mt={4}
+							isLoading={estaEnviando}
+							onPress={lidarEnviar(lidarEntrar)}
+						>
 							Entrar
 						</Botao>
 					</VStack>

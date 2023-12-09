@@ -2,8 +2,10 @@ import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import { Box, useTheme } from "native-base";
 import { AutRotas } from "./aut.rotas";
 import { AppRotas } from "./app.rotas";
+import useAut from "@hook/useAut";
 
 export function Rotas() {
+	const { usuario } = useAut();
 	const { colors: cores } = useTheme();
 
 	const navTema = DefaultTheme;
@@ -12,7 +14,7 @@ export function Rotas() {
 	return (
 		<Box flex={1} safeArea bgColor="gray.100">
 			<NavigationContainer theme={navTema}>
-				<AutRotas />
+				{usuario.id ? <AppRotas /> : <AutRotas />}
 			</NavigationContainer>
 		</Box>
 	);

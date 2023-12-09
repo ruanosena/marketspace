@@ -1,6 +1,6 @@
 import { createBottomTabNavigator, BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Icon, useTheme } from "native-base";
-import { House, Tag } from "phosphor-react-native";
+import { House, SignOut, Tag } from "phosphor-react-native";
 import { CatalogoRotas } from "./catalogo.rotas";
 import { MeusAnuncios } from "@tela/MeusAnuncios";
 import { AnunciosRotas } from "./anuncios.rotas";
@@ -8,6 +8,7 @@ import { AnunciosRotas } from "./anuncios.rotas";
 type AppRotas = {
 	catalogo: undefined;
 	anuncios: undefined;
+	// sair: undefined;
 };
 
 export type AppNavegadorRotasProps = BottomTabNavigationProp<AppRotas>;
@@ -37,6 +38,10 @@ export function AppRotas() {
 				component={AnunciosRotas}
 				options={{ tabBarIcon: ({ color, size }) => <Icon as={Tag} color={color} size={size} /> }}
 			/>
+			{/* <Tela
+				name="sair"
+				options={{ tabBarIcon: ({ size }) => <Icon as={SignOut} color="red.300" size={size} /> }}
+			/> */}
 		</Navegador>
 	);
 }

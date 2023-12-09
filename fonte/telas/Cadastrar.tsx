@@ -9,18 +9,24 @@ import {
 	Image,
 	Pressable,
 	ScrollView,
+	Skeleton,
 	Text,
 	VStack,
+	useToast,
 } from "native-base";
 import { Controller, useForm } from "react-hook-form";
 import { Eye, EyeSlash, PencilLine } from "phosphor-react-native";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import * as ImagemSelecionador from "expo-image-picker";
+import * as SistemaArquivo from "expo-file-system";
 
 import LogoSvg from "@asset/Logo.svg";
 import { Entrada } from "@comp/Entrada";
 import { Botao } from "@comp/Botao";
 import perfilExemplo from "@asset/perfilPlaceholder.png";
+import { Api } from "@servico/api";
+import { AppErro } from "@util/AppErro";
 
 type FormDadosProps = {
 	nome: string;
@@ -50,8 +56,12 @@ const cadastroEsquema = yup.object({
 });
 
 export function Cadastrar() {
+	const [estaEnviando, defEstaEnviando] = useState(false);
+	const [fotoEstaCarregando, defFotoEstaCarregando] = useState(false);
+	const [foto, defFoto] = useState<ImagemSelecionador.ImagePickerAsset>();
 	const [mostrarSenha, defMostrarSenha] = useState(false);
 	const navegacao = useNavigation();
+	const torrada = useToast();
 
 	const {
 		control: controle,
@@ -63,11 +73,83 @@ export function Cadastrar() {
 		navegacao.goBack();
 	}
 
-	function lidarCadastrar({ nome, email, telefone: telefoneBruto, senha }: FormDadosProps) {
-		let foneMatches = telefoneBruto.match(telefoneRegExp);
-		let telefone = foneMatches?.slice(1).join("");
+	async function lidarCadastrar({ nome, email, telefone: telefoneBruto, senha }: FormDadosProps) {
+		try {
+			defEstaEnviando(true);
+			if (!foto) {
+				throw new AppErro("Selecione uma foto de perfil.");
+			}
+			let foneMatches = telefoneBruto.match(telefoneRegExp);
+			let telefone = foneMatches?.slice(1).join("");
 
-		console.log(nome, email, telefone, senha);
+			const dadosForm = new FormData();
+
+			const extensao = foto.uri.split(".").pop();
+			const fotoArquivo = {
+				name: `Avatar-${Date.now()}.${extensao}`.toLowerCase(),
+				uri: foto.uri,
+				type: `${foto.type}/${extensao}`,
+			} as any;
+
+			dadosForm.append("avatar", fotoArquivo);
+			dadosForm.append("name", nome);
+			dadosForm.append("email", email);
+			dadosForm.append("tel", telefone + "");
+			dadosForm.append("password", senha);
+
+			const resposta = await Api.post("/users", dadosForm, {
+				headers: { "Content-Type": "multipart/form-data" },
+			});
+
+			torrada.show({
+				title: "Usuário criado com sucesso.",
+				placement: "bottom",
+				bgColor: "blue.300",
+			});
+			console.log(resposta.data);
+		} catch (erro) {
+			let mensagem =
+				erro instanceof AppErro
+					? erro.message
+					: "Não foi possível criar a conta, tente novamente mais tarde.";
+
+			torrada.show({ title: mensagem, placement: "bottom", bgColor: "red.300" });
+		} finally {
+			defEstaEnviando(false);
+		}
+	}
+
+	async function lidarSelecionarFoto() {
+		defFotoEstaCarregando(true);
+		try {
+			const fotoSelecionada = await ImagemSelecionador.launchImageLibraryAsync({
+				mediaTypes: ImagemSelecionador.MediaTypeOptions.Images,
+				quality: 1,
+				aspect: [1, 1],
+				allowsEditing: true,
+				selectionLimit: 1,
+			});
+
+			if (fotoSelecionada.canceled) return;
+
+			if (fotoSelecionada.assets[0]) {
+				const fotoInfo = await SistemaArquivo.getInfoAsync(fotoSelecionada.assets[0].uri);
+
+				if (fotoInfo.exists && fotoInfo.size / 1024 / 1024 > 5) {
+					return torrada.show({
+						title: "Imagem é muito grande, escolha uma de até 5MB",
+						placement: "bottom",
+						bgColor: "red.300",
+					});
+				}
+			}
+
+			defFoto(fotoSelecionada.assets[0]);
+		} catch (erro) {
+			console.log(erro);
+		} finally {
+			defFotoEstaCarregando(false);
+		}
 	}
 
 	return (
@@ -78,38 +160,45 @@ export function Cadastrar() {
 					<Heading fontSize="lg" color="gray.900" mt={1}>
 						Boas vindas!
 					</Heading>
-					<Text color="gray.700" fontSize="md" textAlign="center">
+					<Text color="gray.700" fontSize="xs" textAlign="center">
 						Crie sua conta e use o espaço para comprar itens variados e vender seus produtos
 					</Text>
 				</VStack>
 				<VStack my={8} space={4}>
-					<Box
-						borderWidth={2}
-						alignItems="flex-end"
-						justifyContent="flex-end"
-						borderColor="blue.300"
-						rounded="full"
-						w={88}
-						h={88}
-						mx="auto"
-					>
-						<Image
-							w="full"
-							h="full"
-							resizeMode="contain"
-							source={perfilExemplo}
-							alt="Imagem da foto de perfil"
-							position="absolute"
-						/>
-						<IconButton
-							mr={-4}
-							mb={-1}
-							size="sm"
-							icon={<Icon as={PencilLine} color="gray.100" />}
-							bgColor="blue.300"
+					{fotoEstaCarregando ? (
+						<Skeleton
+							w={88}
+							h={88}
 							rounded="full"
+							startColor="gray.300"
+							endColor="gray.500"
+							mx="auto"
 						/>
-					</Box>
+					) : (
+						<Box alignItems="flex-end" justifyContent="flex-end" w={88} h={88} mx="auto">
+							<Image
+								w="full"
+								h="full"
+								overflow="hidden"
+								rounded="full"
+								borderWidth={3}
+								borderColor="blue.300"
+								resizeMode="contain"
+								source={foto ? { uri: foto.uri } : perfilExemplo}
+								alt="Imagem da foto de perfil"
+								position="absolute"
+							/>
+							<IconButton
+								onPress={lidarSelecionarFoto}
+								mr={-4}
+								mb={-1}
+								size="sm"
+								icon={<Icon as={PencilLine} color="gray.100" />}
+								bgColor="blue.300"
+								rounded="full"
+							/>
+						</Box>
+					)}
 					<Controller
 						name="nome"
 						control={controle}
@@ -129,6 +218,7 @@ export function Cadastrar() {
 							<Entrada
 								placeholder="E-mail"
 								keyboardType="email-address"
+								autoCapitalize="none"
 								onChangeText={onChange}
 								value={value}
 								erro={erros.email?.message}
@@ -155,6 +245,7 @@ export function Cadastrar() {
 						render={({ field: { onChange, value } }) => (
 							<Entrada
 								placeholder="Senha"
+								autoCapitalize="none"
 								onChangeText={onChange}
 								value={value}
 								erro={erros.senha?.message}
@@ -174,6 +265,7 @@ export function Cadastrar() {
 						render={({ field: { onChange, value } }) => (
 							<Entrada
 								placeholder="Confirmar senha"
+								autoCapitalize="none"
 								returnKeyType="send"
 								onSubmitEditing={lidarEnviar(lidarCadastrar)}
 								onChangeText={onChange}
@@ -189,7 +281,7 @@ export function Cadastrar() {
 							/>
 						)}
 					/>
-					<Botao mt={2} onPress={lidarEnviar(lidarCadastrar)}>
+					<Botao mt={2} isLoading={estaEnviando} onPress={lidarEnviar(lidarCadastrar)}>
 						Criar
 					</Botao>
 				</VStack>
