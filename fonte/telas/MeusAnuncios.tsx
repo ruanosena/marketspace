@@ -1,23 +1,54 @@
-import { useState } from "react";
-import { Box, FlatList, HStack, Icon, IconButton, Select, Text } from "native-base";
-import { useNavigation } from "@react-navigation/native";
+import { useCallback, useState } from "react";
+import { Box, FlatList, HStack, Icon, IconButton, Select, Text, useToast } from "native-base";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { Plus } from "phosphor-react-native";
 import { TelaCabecalho } from "@comp/TelaCabecalho";
 import { AnuncioCartao } from "@comp/AnuncioCartao";
 import { AnunciosNavegadorRotasProps } from "@rota/anuncios.rotas";
+import { Api } from "@servico/api";
+import { AppErro } from "@util/AppErro";
+import { Carregando } from "@comp/Carregando";
+import { ProdutoDTO } from "@dto/produtoDTO";
 
 type AnunciosFiltros = "Todos" | "Ativos" | "Inativos";
 
 export function MeusAnuncios() {
-	const [meusAnuncios, defMeusAnuncios] = useState([1, 2, 2, 1, 2, 1, 1]);
+	const [estaBuscando, defEstaBuscando] = useState(true);
+	const [meusProdutos, defMeusProdutos] = useState<ProdutoDTO[]>();
 	const [anunciosFiltro, defAnunciosFiltro] = useState("Todos");
 	const navegacao = useNavigation<AnunciosNavegadorRotasProps>();
+	const torrada = useToast();
 
 	function lidarAbrirAnuncio() {
 		navegacao.navigate("detalhes");
 	}
 
-	return (
+	async function buscarProdutos() {
+		try {
+			const resposta = await Api.get("/users/products");
+
+			defMeusProdutos(resposta.data);
+		} catch (erro) {
+			let mensagem =
+				erro instanceof AppErro ? erro.message : "Não foi possível carregar o catálogo";
+
+			torrada.show({ title: mensagem, placement: "bottom", bgColor: "red.300" });
+		} finally {
+			defEstaBuscando(false);
+		}
+	}
+
+	useFocusEffect(
+		useCallback(() => {
+			if (anunciosFiltro == "Todos") {
+				buscarProdutos();
+			}
+		}, [anunciosFiltro])
+	);
+
+	return estaBuscando ? (
+		<Carregando />
+	) : (
 		<>
 			<TelaCabecalho
 				botaoVoltar={false}
@@ -42,12 +73,13 @@ export function MeusAnuncios() {
 			<FlatList
 				my={6}
 				px={6}
-				data={meusAnuncios}
+				data={meusProdutos}
 				keyExtractor={(item, indice) => "anuncio-" + item + indice}
 				renderItem={({ item }) => (
 					<AnuncioCartao
 						onPress={() => lidarAbrirAnuncio()}
 						dados={item}
+						mostrarDesativado
 						style={{ flex: 1, marginBottom: 24 }}
 					/>
 				)}

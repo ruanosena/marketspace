@@ -1,20 +1,51 @@
-import { useState } from "react";
-import { Box, FlatList } from "native-base";
-import { useNavigation } from "@react-navigation/native";
+import { useCallback, useState } from "react";
+import { Box, FlatList, useToast } from "native-base";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { AnuncioCartao } from "@comp/AnuncioCartao";
 import { CTAAnuncios } from "@comp/CTAAnuncios";
 import { CatalogoCabecalho } from "@comp/CatalogoCabecalho";
 import { InicioCabecalho } from "@comp/InicioCabecalho";
 import { CatalogoNavegadorRotasProps } from "@rota/catalogo.rotas";
+import { Carregando } from "@comp/Carregando";
+import { AppErro } from "@util/AppErro";
+import { Api } from "@servico/api";
+import { ProdutoDTO } from "@dto/produtoDTO";
 
 export function Inicio() {
-	const [anuncios, defAnuncios] = useState([1, 2, 1, 1, 2, 2, 2, 1]);
+	const [estaBuscando, defEstaBuscando] = useState(true);
+	const [produtos, defProdutos] = useState<ProdutoDTO[]>([]);
 	const navegacao = useNavigation<CatalogoNavegadorRotasProps>();
+	const torrada = useToast();
 
 	function lidarAbrirAnuncio() {
 		navegacao.navigate("anuncio");
 	}
-	return (
+
+	async function buscarProdutos() {
+		try {
+			const resposta = await Api.get("/products");
+
+			defProdutos(resposta.data);
+
+		} catch (erro) {
+			let mensagem =
+				erro instanceof AppErro ? erro.message : "Não foi possível carregar o catálogo";
+
+			torrada.show({ title: mensagem, placement: "bottom", bgColor: "red.300" });
+		} finally {
+			defEstaBuscando(false);
+		}
+	}
+
+	useFocusEffect(
+		useCallback(() => {
+			buscarProdutos();
+		}, [])
+	);
+
+	return estaBuscando ? (
+		<Carregando />
+	) : (
 		<Box flex={1}>
 			<InicioCabecalho />
 			<CTAAnuncios />
@@ -22,7 +53,7 @@ export function Inicio() {
 			<FlatList
 				my={6}
 				px={6}
-				data={anuncios}
+				data={produtos}
 				keyExtractor={(item, indice) => "anuncio-" + item + indice}
 				renderItem={({ item }) => (
 					<AnuncioCartao
