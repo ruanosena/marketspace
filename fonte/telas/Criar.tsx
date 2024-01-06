@@ -37,6 +37,7 @@ type FormDadosProps = {
 };
 
 export function Criar() {
+	const [estaEnviando, defEstaEnviando] = useState(false);
 	const [fotos, defFotos] = useState<ImagemSelecionador.ImagePickerAsset[]>([]);
 	const navegacao = useNavigation<CatalogoNavegadorRotasProps>();
 	const torrada = useToast();
@@ -56,7 +57,8 @@ export function Criar() {
 		metodosPagamento,
 	}: FormDadosProps) {
 		try {
-			const { data } = await Api.post("/products", {
+			defEstaEnviando(true);
+			const { data: produto } = await Api.post("/products", {
 				name: titulo,
 				description: descricao,
 				price: Number(preco),
@@ -66,12 +68,12 @@ export function Criar() {
 			});
 
 			const formDados = new FormData();
-			formDados.append("product_id", data.id);
+			formDados.append("product_id", produto.id);
 
 			fotos.forEach((foto) => {
 				let extensao = foto.uri.split(".").pop();
-				formDados.append("images", {
-					name: `Produto-${Date.now()}.${extensao}`.toLowerCase(),
+				formDados.append(`images`, {
+					name: `Produto-${foto.fileName}.${extensao}`.toLowerCase(),
 					uri: foto.uri,
 					type: `${foto.type}/${extensao}`,
 				} as any);
@@ -81,9 +83,10 @@ export function Criar() {
 				headers: { "Content-Type": "multipart/form-data" },
 			});
 
-			console.log(resposta);
+			console.log(resposta.data);
 		} catch (erro) {
 			console.log(erro);
+			defEstaEnviando(false);
 		}
 		// navegacao.navigate("visualizar");
 	}
@@ -137,7 +140,7 @@ export function Criar() {
 						</Box>
 						<HStack space={2}>
 							{fotos.map((imagem) => (
-								<Box rounded="md" overflow="hidden" w={100} h={100}>
+								<Box key={imagem.fileName} rounded="md" overflow="hidden" w={100} h={100}>
 									<Image
 										w={100}
 										h={100}
@@ -304,7 +307,7 @@ export function Criar() {
 					<Botao flex={1} bgColor="gray.300" _text={{ color: "gray.700" }}>
 						Cancelar
 					</Botao>
-					<Botao flex={1} onPress={lidarEnviar(lidarCriarAnuncio)}>
+					<Botao flex={1} isLoading={estaEnviando} onPress={lidarEnviar(lidarCriarAnuncio)}>
 						Avançar
 					</Botao>
 				</Button.Group>
