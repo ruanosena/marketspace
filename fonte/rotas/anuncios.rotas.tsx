@@ -9,7 +9,7 @@ import { Editar } from "@tela/Editar";
 type AnunciosRotas = {
 	meus_anuncios: undefined;
 	detalhes: { anuncioId: string };
-	editar: undefined;
+	editar: { anuncioId: string };
 };
 
 export type AnunciosNavegadorRotasProps = NativeStackNavigationProp<AnunciosRotas>;

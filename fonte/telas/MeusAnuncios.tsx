@@ -1,11 +1,9 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Box, FlatList, HStack, Icon, IconButton, Select, Text, useToast } from "native-base";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { Plus } from "phosphor-react-native";
 import { TelaCabecalho } from "@comp/TelaCabecalho";
 import { AnuncioCartao } from "@comp/AnuncioCartao";
 import { AnunciosNavegadorRotasProps } from "@rota/anuncios.rotas";
-import { Api } from "@servico/api";
 import { AppErro } from "@util/AppErro";
 import { Carregando } from "@comp/Carregando";
 import { ProdutoDTO } from "@dto/produtoDTO";
@@ -15,7 +13,8 @@ type AnunciosFiltros = "Todos" | "Ativos" | "Inativos";
 
 export function MeusAnuncios() {
 	const [estaBuscando, defEstaBuscando] = useState(true);
-	const [anunciosFiltro, defAnunciosFiltro] = useState("Todos");
+	const [anunciosFiltro, defAnunciosFiltro] = useState<AnunciosFiltros>("Todos");
+	const [meusProdutosFiltrados, defMeusProdutosFiltrados] = useState<ProdutoDTO[]>([]);
 	const { buscarMeusProdutos, meusProdutos } = useProdutos();
 
 	const navegacao = useNavigation<AnunciosNavegadorRotasProps>();
@@ -24,6 +23,16 @@ export function MeusAnuncios() {
 	function lidarAbrirAnuncio(id: string) {
 		navegacao.navigate("detalhes", { anuncioId: id });
 	}
+
+	useEffect(() => {
+		if (anunciosFiltro == "Todos") {
+			defMeusProdutosFiltrados(meusProdutos);
+		} else if (anunciosFiltro == "Ativos") {
+			defMeusProdutosFiltrados(meusProdutos.filter((a) => a.is_active));
+		} else if (anunciosFiltro == "Inativos") {
+			defMeusProdutosFiltrados(meusProdutos.filter((a) => !a.is_active));
+		}
+	}, [anunciosFiltro, meusProdutos]);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -38,7 +47,7 @@ export function MeusAnuncios() {
 			} finally {
 				defEstaBuscando(false);
 			}
-		}, [anunciosFiltro])
+		}, [])
 	);
 
 	return estaBuscando ? (
@@ -52,12 +61,15 @@ export function MeusAnuncios() {
 				Meus Anúncios
 			</TelaCabecalho>
 			<HStack mt={8} mb={5} px={6} justifyContent="space-between" alignItems="center">
-				<Text>9 anúncios</Text>
+				<Text>
+					{meusProdutosFiltrados.length}{" "}
+					{meusProdutosFiltrados.length == 1 ? "anúncio" : "anúncios"}
+				</Text>
 				<Select
 					selectedValue={anunciosFiltro}
 					minWidth={32}
 					_selectedItem={{ bgColor: "gray.300" }}
-					onValueChange={(item) => defAnunciosFiltro(item)}
+					onValueChange={(item) => defAnunciosFiltro(item as AnunciosFiltros)}
 				>
 					<Select.Item label="Todos" value="Todos" />
 					<Select.Item label="Ativos" value="Ativos" />
@@ -68,7 +80,7 @@ export function MeusAnuncios() {
 			<FlatList
 				my={6}
 				px={6}
-				data={meusProdutos}
+				data={meusProdutosFiltrados}
 				keyExtractor={(item, indice) => "anuncio-" + item + indice}
 				renderItem={({ item }) => (
 					<AnuncioCartao

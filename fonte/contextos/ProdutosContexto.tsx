@@ -14,6 +14,8 @@ type ProdutosContextoDadosProps = {
 	criarProduto: (dados: CriarFormDadosProps) => Promise<ProdutoDTO>;
 	enviarFotos: (produtoId: string, fotos: ImagePickerAsset[]) => Promise<void>;
 	defFiltros: React.Dispatch<React.SetStateAction<ProdutosFiltrosProps>>;
+	alterarVisibilidadeProduto: (produtoId: string, visivel: boolean) => Promise<void>;
+	excluirProduto: (produtoId: string) => Promise<void>;
 };
 
 export const ProdutosContexto = createContext<ProdutosContextoDadosProps>(
@@ -86,6 +88,22 @@ export default function ProdutosContextoProvider({ children }: ProdutosContextoP
 		}
 	}
 
+	async function alterarVisibilidadeProduto(produtoId: string, visivel: boolean) {
+		try {
+			await Api.patch(`/products/${produtoId}`, { is_active: visivel });
+		} catch (erro) {
+			throw erro;
+		}
+	}
+
+	async function excluirProduto(produtoId: string) {
+		try {
+			await Api.delete(`products/${produtoId}`);
+		} catch (erro) {
+			throw erro;
+		}
+	}
+
 	async function buscarProdutos() {
 		try {
 			const resposta = await Api.get("/products", {
@@ -124,6 +142,8 @@ export default function ProdutosContextoProvider({ children }: ProdutosContextoP
 				defFiltros,
 				criarProduto,
 				enviarFotos,
+				alterarVisibilidadeProduto,
+				excluirProduto,
 			}}
 		>
 			{children}

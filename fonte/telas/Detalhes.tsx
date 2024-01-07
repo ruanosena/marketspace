@@ -1,4 +1,4 @@
-import { Dimensions } from "react-native";
+import { Alert, Dimensions } from "react-native";
 import {
 	Box,
 	Button,
@@ -44,16 +44,54 @@ type RotaParamsProps = {
 };
 
 export function Detalhes() {
+	const [estaDesativando, defEstaDesativando] = useState(false);
+	const [estaExcluindo, defEstaExcluindo] = useState(false);
 	const navegacao = useNavigation<AnunciosNavegadorRotasProps>();
 	const tamanho = Dimensions.get("window").width;
 	const [produto, defProduto] = useState<ProdutoDTO>();
-	const { buscarProduto } = useProdutos();
+	const { buscarProduto, alterarVisibilidadeProduto, excluirProduto } = useProdutos();
 	const rota = useRoute();
 	const torrada = useToast();
 	const { anuncioId: produtoId } = rota.params as RotaParamsProps;
 
 	function lidarEditar() {
-		navegacao.navigate("editar");
+		navegacao.navigate("editar", { anuncioId: produtoId });
+	}
+
+	async function lidarDesativar() {
+		try {
+			defEstaDesativando(true);
+			await alterarVisibilidadeProduto(produtoId, !produto?.is_active);
+			navegacao.navigate("meus_anuncios");
+		} catch (erro) {
+			let mensagem =
+				erro instanceof AppErro ? erro.message : "Não foi possível desativar o anúncio do produto";
+
+			torrada.show({ title: mensagem, placement: "bottom", bgColor: "red.300" });
+			defEstaDesativando(false);
+		}
+	}
+
+	async function lidarExcluir() {
+		try {
+			Alert.alert("Excluir", "Deseja realmente excluir este anúncio?", [
+				{ text: "Cancelar", style: "cancel" },
+				{
+					text: "Excluir",
+					onPress: async () => {
+						defEstaExcluindo(true);
+						await excluirProduto(produtoId);
+						navegacao.navigate("meus_anuncios");
+					},
+				},
+			]);
+		} catch (erro) {
+			let mensagem =
+				erro instanceof AppErro ? erro.message : "Não foi possível excluir o anúncio do produto";
+
+			torrada.show({ title: mensagem, placement: "bottom", bgColor: "red.300" });
+			defEstaExcluindo(false);
+		}
 	}
 
 	useEffect(() => {
@@ -220,11 +258,19 @@ export function Detalhes() {
 					</VStack>
 
 					<Button.Group direction="column" space={2}>
-						<Botao leftIcon={<Icon as={Power} />}>Desativar Anúncio</Botao>
+						<Botao
+							leftIcon={<Icon as={Power} />}
+							isLoading={estaDesativando}
+							onPress={lidarDesativar}
+						>
+							{produto?.is_active ? "Desativar Anúncio" : "Ativar Anúncio"}
+						</Botao>
 						<Botao
 							bgColor="gray.300"
 							leftIcon={<Icon as={TrashSimple} color="gray.700" />}
 							_text={{ color: "gray.700" }}
+							isLoading={estaExcluindo}
+							onPress={lidarExcluir}
 						>
 							Excluir anúncio
 						</Botao>

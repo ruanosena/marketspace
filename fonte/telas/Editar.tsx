@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TouchableOpacity } from "react-native";
 import {
 	Box,
@@ -14,6 +14,7 @@ import {
 	Switch,
 	Checkbox,
 	Button,
+	useToast,
 } from "native-base";
 import { Plus } from "phosphor-react-native";
 import { TelaCabecalho } from "@comp/TelaCabecalho";
@@ -21,9 +22,38 @@ import { Entrada } from "@comp/Entrada";
 import { Botao } from "@comp/Botao";
 
 import meuAnuncio1 from "@asset/meuanuncio1.png";
+import { useRoute } from "@react-navigation/native";
+import useProdutos from "@hook/useProdutos";
+import { ProdutoDTO } from "@dto/produtoDTO";
+import { AppErro } from "@util/AppErro";
+import { Api } from "@servico/api";
+
+type RotaParamsProps = {
+	anuncioId: string;
+};
 
 export function Editar() {
 	const [anuncioImagens, defAnuncioImagens] = useState([meuAnuncio1]);
+	const [produto, defProduto] = useState<ProdutoDTO>();
+	const rota = useRoute();
+	const { anuncioId } = rota.params as RotaParamsProps;
+	const { buscarProduto } = useProdutos();
+	const torrada = useToast();
+
+	useEffect(() => {
+		if (anuncioId) {
+			buscarProduto(anuncioId)
+				.then(defProduto)
+				.catch((erro) => {
+					let mensagem =
+						erro instanceof AppErro
+							? erro.message
+							: "Não foi possível carregar o anúncio do produto";
+
+					torrada.show({ title: mensagem, placement: "bottom", bgColor: "red.300" });
+				});
+		}
+	}, [anuncioId]);
 
 	return (
 		<>
@@ -40,24 +70,25 @@ export function Editar() {
 							</Text>
 						</Box>
 						<HStack space={2}>
-							{anuncioImagens.map((imagem) => (
-								<Box rounded="md" overflow="hidden" w={100} h={100}>
+							{produto?.product_images.map((img) => (
+								<Box key={img.id} rounded="md" overflow="hidden" w={100} h={100}>
 									<Image
 										w={100}
 										h={100}
 										resizeMode="cover"
-										source={imagem}
+										source={{ uri: `${Api.defaults.baseURL}/images/${img.path}` }}
 										alt="Imagem do produto em anúncio"
 									/>
 								</Box>
 							))}
-							{anuncioImagens.length < 3 && (
-								<TouchableOpacity>
-									<Center rounded="md" overflow="hidden" w={100} h={100} bgColor="gray.300">
-										<Icon as={Plus} color="gray.500" />
-									</Center>
-								</TouchableOpacity>
-							)}
+							{!produto?.product_images ||
+								(produto.product_images.length < 3 && (
+									<TouchableOpacity>
+										<Center rounded="md" overflow="hidden" w={100} h={100} bgColor="gray.300">
+											<Icon as={Plus} color="gray.500" />
+										</Center>
+									</TouchableOpacity>
+								))}
 						</HStack>
 					</VStack>
 
