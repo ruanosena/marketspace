@@ -5,6 +5,7 @@ import { Tema } from "./fonte/tema";
 import { Rotas } from "@rota/index";
 import { Carregando } from "@comp/Carregando";
 import { AutContextoProvider } from "@ctx/AutContexto";
+import ProdutosContextoProvider from "@ctx/ProdutosContexto";
 
 export default function App() {
 	const [fonteCarregada] = useFonts({ Karla_400Regular, Karla_700Bold });
@@ -12,7 +13,11 @@ export default function App() {
 	return (
 		<NativeBaseProvider theme={Tema}>
 			<StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-			<AutContextoProvider>{fonteCarregada ? <Rotas /> : <Carregando />}</AutContextoProvider>
+			<AutContextoProvider>
+				<ProdutosContextoProvider>
+					{fonteCarregada ? <Rotas /> : <Carregando />}
+				</ProdutosContextoProvider>
+			</AutContextoProvider>
 		</NativeBaseProvider>
 	);
 }

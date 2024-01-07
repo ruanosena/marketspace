@@ -10,36 +10,31 @@ import { Carregando } from "@comp/Carregando";
 import { AppErro } from "@util/AppErro";
 import { Api } from "@servico/api";
 import { ProdutoDTO } from "@dto/produtoDTO";
+import useProdutos from "@hook/useProdutos";
 
 export function Inicio() {
 	const [estaBuscando, defEstaBuscando] = useState(true);
-	const [produtos, defProdutos] = useState<ProdutoDTO[]>([]);
 	const navegacao = useNavigation<CatalogoNavegadorRotasProps>();
 	const torrada = useToast();
+	const { buscarProdutos, produtos } = useProdutos();
 
 	function lidarAbrirAnuncio() {
 		navegacao.navigate("anuncio");
 	}
 
-	async function buscarProdutos() {
-		try {
-			const resposta = await Api.get("/products");
-
-			defProdutos(resposta.data);
-
-		} catch (erro) {
-			let mensagem =
-				erro instanceof AppErro ? erro.message : "Não foi possível carregar o catálogo";
-
-			torrada.show({ title: mensagem, placement: "bottom", bgColor: "red.300" });
-		} finally {
-			defEstaBuscando(false);
-		}
-	}
-
 	useFocusEffect(
 		useCallback(() => {
-			buscarProdutos();
+			try {
+				buscarProdutos();
+			} catch (erro) {
+				console.log(erro);
+				let mensagem =
+					erro instanceof AppErro ? erro.message : "Não foi possível carregar o catálogo";
+
+				torrada.show({ title: mensagem, placement: "bottom", bgColor: "red.300" });
+			} finally {
+				defEstaBuscando(false);
+			}
 		}, [])
 	);
 

@@ -10,6 +10,6 @@ export type ProdutoDTO = {
 	created_at: string;
 	updated_at: string;
 	product_images: { path: string; id: string }[];
-	payment_methods: { key: string; name: string }[];
+	payment_methods: { key: "pix" | "card" | "boleto" | "cash" | "deposit"; name: string }[];
 	user?: { avatar: string; name: string; tel: string };
 };

@@ -8,7 +8,7 @@ import { Editar } from "@tela/Editar";
 
 type AnunciosRotas = {
 	meus_anuncios: undefined;
-	detalhes: undefined;
+	detalhes: { anuncioId: string };
 	editar: undefined;
 };
 

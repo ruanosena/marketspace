@@ -11,25 +11,65 @@ import {
 	ScrollView,
 	Text,
 	VStack,
+	useToast,
 } from "native-base";
 import Carrossel from "react-native-reanimated-carousel";
-import { Bank, Barcode, PencilLine, Power, QrCode, TrashSimple } from "phosphor-react-native";
+import {
+	Bank,
+	Barcode,
+	CreditCard,
+	Money,
+	PencilLine,
+	Power,
+	QrCode,
+	TrashSimple,
+} from "phosphor-react-native";
 import { Botao } from "@comp/Botao";
 import { TelaCabecalho } from "@comp/TelaCabecalho";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 import meuAnuncio1 from "@asset/meuanuncio1.png";
 import meuAnuncio2 from "@asset/meuanuncio2.png";
 import fotoPerfil from "@asset/fotoPerfil.png";
 import { AnunciosNavegadorRotasProps } from "@rota/anuncios.rotas";
+import { useEffect, useState } from "react";
+import useProdutos from "@hook/useProdutos";
+import { ProdutoDTO } from "@dto/produtoDTO";
+import { AppErro } from "@util/AppErro";
+import MoedaFormatador from "@util/MoedaFormatador";
+import { Api } from "@servico/api";
+
+type RotaParamsProps = {
+	anuncioId: string;
+};
 
 export function Detalhes() {
 	const navegacao = useNavigation<AnunciosNavegadorRotasProps>();
 	const tamanho = Dimensions.get("window").width;
+	const [produto, defProduto] = useState<ProdutoDTO>();
+	const { buscarProduto } = useProdutos();
+	const rota = useRoute();
+	const torrada = useToast();
+	const { anuncioId: produtoId } = rota.params as RotaParamsProps;
 
 	function lidarEditar() {
 		navegacao.navigate("editar");
 	}
+
+	useEffect(() => {
+		if (produtoId) {
+			buscarProduto(produtoId)
+				.then(defProduto)
+				.catch((erro) => {
+					let mensagem =
+						erro instanceof AppErro
+							? erro.message
+							: "Não foi possível carregar o anúncio do produto";
+
+					torrada.show({ title: mensagem, placement: "bottom", bgColor: "red.300" });
+				});
+		}
+	}, [produtoId]);
 
 	return (
 		<>
@@ -44,22 +84,22 @@ export function Detalhes() {
 					width={tamanho}
 					height={280}
 					autoPlay={false}
-					data={[meuAnuncio1, meuAnuncio2]}
+					data={produto?.product_images || []}
 					scrollAnimationDuration={1000}
-					renderItem={({ index, item }) => (
+					renderItem={({ item }) => (
 						<Box flex={1} justifyContent="center">
 							<Image
 								position="absolute"
 								w="full"
 								h="full"
-								source={item}
-								alt="Imagem do anúncio"
+								source={{ uri: `${Api.defaults.baseURL}/images/${item.path}` }}
+								alt={item.id}
 								resizeMode="cover"
 							/>
-							{index == 1 && (
+							{!produto?.is_active && (
 								<Box w="full" h="full" bgColor="gray.900" position="absolute" opacity={0.6} />
 							)}
-							{index == 1 && (
+							{!produto?.is_active && (
 								<Text textAlign="center" textTransform="uppercase" color="white" fontSize="sm">
 									Anúncio desativado
 								</Text>
@@ -69,16 +109,18 @@ export function Detalhes() {
 				/>
 				<VStack px={6} space={6} mt={5}>
 					<HStack alignItems="center" space={2}>
-						<Image
-							w={8}
-							h={8}
-							borderRadius="full"
-							borderWidth={2}
-							borderColor="blue.300"
-							source={fotoPerfil}
-							alt="Imagem foto do perfil"
-						/>
-						<Heading fontSize="sm">Maria Gomes</Heading>
+						{produto?.user && (
+							<Image
+								w={8}
+								h={8}
+								borderRadius="full"
+								borderWidth={2}
+								borderColor="blue.300"
+								source={{ uri: `${Api.defaults.baseURL}/images/${produto.user.avatar}` }}
+								alt="Imagem foto do perfil"
+							/>
+						)}
+						<Heading fontSize="sm">{produto?.user?.name}</Heading>
 					</HStack>
 
 					<Box alignItems="flex-start">
@@ -93,25 +135,24 @@ export function Detalhes() {
 							mr={1}
 						>
 							<Text color="gray.700" textTransform="uppercase">
-								Usado
+								{produto?.is_new ? "Novo" : "Usado"}
 							</Text>
 						</Pressable>
 					</Box>
 
 					<HStack space={3} alignItems="center">
 						<Heading color="gray.900" fontSize="lg" flex={1}>
-							Luminária pendente
+							{produto?.name}
 						</Heading>
 						<Text fontSize="lg" color="blue.300" fontFamily="heading">
 							<Text fontSize="sm" color="blue.300">
 								R$
 							</Text>{" "}
-							45,00
+							{MoedaFormatador(produto?.price || NaN)}
 						</Text>
 					</HStack>
 					<Text color="gray.700" fontSize="sm">
-						Cras congue cursus in tortor sagittis placerat nunc, tellus arcu. Vitae ante leo eget
-						maecenas urna mattis cursus.
+						{produto?.description}
 					</Text>
 
 					<VStack space={4}>
@@ -119,30 +160,62 @@ export function Detalhes() {
 							<Heading fontSize="sm" color="gray.700">
 								Aceita troca?
 							</Heading>
-							<Text color="gray.700">Não</Text>
+							<Text color="gray.700">{produto?.accept_trade ? "Sim" : "Não"}</Text>
 						</HStack>
 						<VStack space={2}>
 							<Heading fontSize="sm" color="gray.700">
 								Meios de pagamento:
 							</Heading>
-							<Box flexDir="row">
-								<Icon as={Barcode} mr={2} />
-								<Text color="gray.700" textTransform="capitalize">
-									Boleto
-								</Text>
-							</Box>
-							<Box flexDir="row">
-								<Icon as={QrCode} mr={2} />
-								<Text color="gray.700" textTransform="capitalize">
-									Pix
-								</Text>
-							</Box>
-							<Box flexDir="row">
-								<Icon as={Bank} mr={2} />
-								<Text color="gray.700" textTransform="capitalize">
-									Depósito Bancário
-								</Text>
-							</Box>
+							{produto?.payment_methods.map((metodo) => {
+								switch (metodo.key) {
+									case "boleto":
+										return (
+											<Box flexDir="row" key={metodo.name + metodo.key}>
+												<Icon as={Barcode} mr={2} />
+												<Text color="gray.700" textTransform="capitalize">
+													Boleto
+												</Text>
+											</Box>
+										);
+
+									case "pix":
+										return (
+											<Box flexDir="row" key={metodo.name + metodo.key}>
+												<Icon as={QrCode} mr={2} />
+												<Text color="gray.700" textTransform="capitalize">
+													Pix
+												</Text>
+											</Box>
+										);
+									case "deposit":
+										return (
+											<Box flexDir="row" key={metodo.name + metodo.key}>
+												<Icon as={Bank} mr={2} />
+												<Text color="gray.700" textTransform="capitalize">
+													Depósito Bancário
+												</Text>
+											</Box>
+										);
+									case "card":
+										return (
+											<Box flexDir="row" key={metodo.name + metodo.key}>
+												<Icon as={CreditCard} mr={2} />
+												<Text color="gray.700" textTransform="capitalize">
+													Cartão de crédito
+												</Text>
+											</Box>
+										);
+									case "cash":
+										return (
+											<Box flexDir="row" key={metodo.name + metodo.key}>
+												<Icon as={Money} mr={2} />
+												<Text color="gray.700" textTransform="capitalize">
+													Dinheiro
+												</Text>
+											</Box>
+										);
+								}
+							})}
 						</VStack>
 					</VStack>
 

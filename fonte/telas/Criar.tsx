@@ -26,8 +26,10 @@ import * as ImagemSelecionador from "expo-image-picker";
 import * as SistemaArquivo from "expo-file-system";
 import { Controller, useForm } from "react-hook-form";
 import { Api } from "@servico/api";
+import useAut from "@hook/useAut";
+import useProdutos from "@hook/useProdutos";
 
-type FormDadosProps = {
+export type FormDadosProps = {
 	titulo: string;
 	descricao: string;
 	ehNovo: string;
@@ -39,6 +41,7 @@ type FormDadosProps = {
 export function Criar() {
 	const [estaEnviando, defEstaEnviando] = useState(false);
 	const [fotos, defFotos] = useState<ImagemSelecionador.ImagePickerAsset[]>([]);
+	const { criarProduto, enviarFotos } = useProdutos();
 	const navegacao = useNavigation<CatalogoNavegadorRotasProps>();
 	const torrada = useToast();
 
@@ -46,44 +49,22 @@ export function Criar() {
 		control: controle,
 		handleSubmit: lidarEnviar,
 		formState: { errors: erros },
-	} = useForm<FormDadosProps>();
+	} = useForm<FormDadosProps>({
+		defaultValues: {
+			aceitaTroca: false,
+			ehNovo: "true",
+		},
+	});
 
-	async function lidarCriarAnuncio({
-		titulo,
-		descricao,
-		ehNovo,
-		preco,
-		aceitaTroca,
-		metodosPagamento,
-	}: FormDadosProps) {
+	async function lidarCriarAnuncio(dados: FormDadosProps) {
 		try {
 			defEstaEnviando(true);
-			const { data: produto } = await Api.post("/products", {
-				name: titulo,
-				description: descricao,
-				price: Number(preco),
-				is_new: ehNovo == "true" ? true : false,
-				accept_trade: aceitaTroca,
-				payment_methods: metodosPagamento,
-			});
 
-			const formDados = new FormData();
-			formDados.append("product_id", produto.id);
+			const produto = await criarProduto(dados);
 
-			fotos.forEach((foto) => {
-				let extensao = foto.uri.split(".").pop();
-				formDados.append(`images`, {
-					name: `Produto-${foto.fileName}.${extensao}`.toLowerCase(),
-					uri: foto.uri,
-					type: `${foto.type}/${extensao}`,
-				} as any);
-			});
+			await enviarFotos(produto.id, fotos);
 
-			const resposta = await Api.post("/products/images", formDados, {
-				headers: { "Content-Type": "multipart/form-data" },
-			});
-
-			console.log(resposta.data);
+			navegacao.navigate("inicio");
 		} catch (erro) {
 			console.log(erro);
 			defEstaEnviando(false);
@@ -91,7 +72,9 @@ export function Criar() {
 		// navegacao.navigate("visualizar");
 	}
 
-	async function lidarEnviarFotos() {}
+	async function lidarCancelar() {
+		navegacao.goBack();
+	}
 
 	async function lidarSelecionarFotos() {
 		try {
@@ -197,7 +180,6 @@ export function Criar() {
 							render={({ field: { value, onChange } }) => (
 								<Radio.Group
 									name="ehNovo"
-									defaultValue="true"
 									value={value}
 									onChange={onChange}
 									space={5}
@@ -304,7 +286,7 @@ export function Criar() {
 			</ScrollView>
 			<Box px={6} py={5} bgColor="white">
 				<Button.Group space={3}>
-					<Botao flex={1} bgColor="gray.300" _text={{ color: "gray.700" }}>
+					<Botao flex={1} onPress={lidarCancelar} bgColor="gray.300" _text={{ color: "gray.700" }}>
 						Cancelar
 					</Botao>
 					<Botao flex={1} isLoading={estaEnviando} onPress={lidarEnviar(lidarCriarAnuncio)}>

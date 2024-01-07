@@ -9,39 +9,34 @@ import { Api } from "@servico/api";
 import { AppErro } from "@util/AppErro";
 import { Carregando } from "@comp/Carregando";
 import { ProdutoDTO } from "@dto/produtoDTO";
+import useProdutos from "@hook/useProdutos";
 
 type AnunciosFiltros = "Todos" | "Ativos" | "Inativos";
 
 export function MeusAnuncios() {
 	const [estaBuscando, defEstaBuscando] = useState(true);
-	const [meusProdutos, defMeusProdutos] = useState<ProdutoDTO[]>();
 	const [anunciosFiltro, defAnunciosFiltro] = useState("Todos");
+	const { buscarMeusProdutos, meusProdutos } = useProdutos();
+
 	const navegacao = useNavigation<AnunciosNavegadorRotasProps>();
 	const torrada = useToast();
 
-	function lidarAbrirAnuncio() {
-		navegacao.navigate("detalhes");
-	}
-
-	async function buscarProdutos() {
-		try {
-			const resposta = await Api.get("/users/products");
-
-			defMeusProdutos(resposta.data);
-		} catch (erro) {
-			let mensagem =
-				erro instanceof AppErro ? erro.message : "Não foi possível carregar o catálogo";
-
-			torrada.show({ title: mensagem, placement: "bottom", bgColor: "red.300" });
-		} finally {
-			defEstaBuscando(false);
-		}
+	function lidarAbrirAnuncio(id: string) {
+		navegacao.navigate("detalhes", { anuncioId: id });
 	}
 
 	useFocusEffect(
 		useCallback(() => {
-			if (anunciosFiltro == "Todos") {
-				buscarProdutos();
+			try {
+				buscarMeusProdutos();
+			} catch (erro) {
+				console.log(erro);
+				let mensagem =
+					erro instanceof AppErro ? erro.message : "Não foi possível carregar o catálogo";
+
+				torrada.show({ title: mensagem, placement: "bottom", bgColor: "red.300" });
+			} finally {
+				defEstaBuscando(false);
 			}
 		}, [anunciosFiltro])
 	);
@@ -77,7 +72,7 @@ export function MeusAnuncios() {
 				keyExtractor={(item, indice) => "anuncio-" + item + indice}
 				renderItem={({ item }) => (
 					<AnuncioCartao
-						onPress={() => lidarAbrirAnuncio()}
+						onPress={() => lidarAbrirAnuncio(item.id)}
 						dados={item}
 						mostrarDesativado
 						style={{ flex: 1, marginBottom: 24 }}
