@@ -72,7 +72,7 @@ export function Criar() {
 		// navegacao.navigate("visualizar");
 	}
 
-	async function lidarCancelar() {
+	function lidarCancelar() {
 		navegacao.goBack();
 	}
 

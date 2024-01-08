@@ -262,8 +262,9 @@ export function Detalhes() {
 							leftIcon={<Icon as={Power} />}
 							isLoading={estaDesativando}
 							onPress={lidarDesativar}
+							bgColor={!produto?.is_active ? "blue.300" : "gray.900"}
 						>
-							{produto?.is_active ? "Desativar Anúncio" : "Ativar Anúncio"}
+							{produto?.is_active ? "Desativar Anúncio" : "Reativar Anúncio"}
 						</Botao>
 						<Botao
 							bgColor="gray.300"

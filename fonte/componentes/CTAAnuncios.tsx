@@ -3,9 +3,8 @@ import { Box, HStack, Heading, Icon, Text, VStack } from "native-base";
 import { Tag, ArrowRight } from "phosphor-react-native";
 import { Botao } from "./Botao";
 import useProdutos from "@hook/useProdutos";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { AnunciosNavegadorRotasProps } from "@rota/anuncios.rotas";
 
 type Props = TouchableHighlightProps & {};
 
